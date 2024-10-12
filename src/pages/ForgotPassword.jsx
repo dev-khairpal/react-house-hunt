@@ -2,15 +2,26 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import OAuth from "../components/OAuth";
+import { toast } from "react-toastify";
+import { getAuth, sendEmailVerification, sendPasswordResetEmail } from "firebase/auth";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
 
-
-  function onChange(e){
+  function onChange(e) {
     setEmail(e.target.value);
   }
 
+  async function onSubmit(e){
+    e.preventDefault();
+    try {
+      const auth = getAuth();
+      await sendPasswordResetEmail(auth, email);
+      toast.success("Email sent.")
+    } catch (error) {
+      toast.error(error.message)
+    }
+  } 
   return (
     <section className="flex min-h-[92vh] items-center justify-center bg-gray-100">
       <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-lg">
@@ -28,7 +39,7 @@ export default function ForgotPassword() {
           </div>
         </div>
 
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={onSubmit}>
           <div>
             <label
               htmlFor="email"
@@ -47,7 +58,6 @@ export default function ForgotPassword() {
             />
           </div>
 
-
           <div className="flex flex-wrap justify-between">
             <p className="text-sm">
               Don't have an account{" "}
@@ -56,10 +66,7 @@ export default function ForgotPassword() {
               </Link>
             </p>
             <p className="text-sm">
-              <Link
-                to="/sign-in"
-                className="text-sm text-blue-700 underline"
-              >
+              <Link to="/sign-in" className="text-sm text-blue-700 underline">
                 Sign in instead
               </Link>
             </p>
@@ -68,7 +75,7 @@ export default function ForgotPassword() {
             type="submit"
             className="w-full rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
           >
-          Send Reset Mail
+            Send Reset Mail
           </button>
           <p className="text-center text-sm font-semibold">OR</p>
 

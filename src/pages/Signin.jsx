@@ -2,8 +2,13 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import OAuth from "../components/OAuth";
+import { signInWithEmailAndPassword,  getAuth } from "firebase/auth";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+
 
 export default function Signin() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -18,6 +23,19 @@ export default function Signin() {
     }));
   }
 
+  async function onSubmit(e){
+    e.preventDefault();
+    try {
+      const auth = getAuth();
+      const userCredentials = await signInWithEmailAndPassword(auth, email, password);
+      if(userCredentials.user){
+        navigate('/')
+      }
+      toast.success("Signed In")
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
   return (
     <section className="flex min-h-[92vh] items-center justify-center bg-gray-100">
       <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-lg">
@@ -35,7 +53,7 @@ export default function Signin() {
           </div>
         </div>
 
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={onSubmit}>
           <div>
             <label
               htmlFor="email"
