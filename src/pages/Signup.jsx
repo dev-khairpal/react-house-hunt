@@ -1,16 +1,25 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-
 import OAuth from "../components/OAuth";
+import "@fortawesome/fontawesome-free/css/all.min.css"; // Import FontAwesome CSS
+import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { db } from "../firebase";
+import { doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+
 
 export default function Signup() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    name:"",
+    name: "",
     email: "",
     password: "",
   });
 
-  const {name, email, password } = formData;
+  const [passwordShowHide, setPasswordShowHide] = useState(true);
+
+  const { name, email, password } = formData;
 
   function onChange(e) {
     setFormData((prevState) => ({
@@ -19,6 +28,32 @@ export default function Signup() {
     }));
   }
 
+  function handleToggle(e) {
+    e.preventDefault();
+    setPasswordShowHide(!passwordShowHide);
+  }
+
+  async function onSubmit(e){
+    e.preventDefault();
+    try {
+      const auth = getAuth();
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      updateProfile(auth.currentUser,{
+        displayName:name
+      })
+      const user = userCredential.user;
+      const formDataCopy = {...formData};
+      delete formDataCopy.password
+      formDataCopy.timestamp = serverTimestamp();
+
+      await setDoc(doc(db, "users", user.uid), formDataCopy);
+      // toast.success("Sign Up was successful")
+      navigate('/');
+
+    } catch (error) {
+      toast.error(error.message)
+    }
+  }
   return (
     <section className="flex min-h-[92vh] items-center justify-center bg-gray-100">
       <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-lg">
@@ -36,8 +71,8 @@ export default function Signup() {
           </div>
         </div>
 
-        <form className="space-y-4">
-        <div>
+        <form className="space-y-4" onSubmit={onSubmit}>
+          <div>
             <label
               htmlFor="name"
               className="block text-sm font-medium text-gray-700"
@@ -79,29 +114,37 @@ export default function Signup() {
             >
               Password
             </label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={password}
-              onChange={onChange}
-              placeholder="Enter Password"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-            />
+            <div className="relative">
+              <input
+                type={passwordShowHide ? "password" : "text"}
+                id="password"
+                name="password"
+                value={password}
+                onChange={onChange}
+                placeholder="Enter Password"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+              />
+              <span
+                onClick={handleToggle}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
+              >
+                <i className={`fas ${passwordShowHide ? 'fa-eye-slash' : 'fa-eye'} text-slate-400`}></i>
+              </span>
+            </div>
           </div>
 
           <div className="flex flex-wrap justify-between">
             <p className="text-sm">
               Already have an account?{" "}
-              <Link className="text-sm text-blue-700 underline" to="/sign-in">
+              <Link
+                className="text-sm text-blue-700 hover:underline"
+                to="/sign-in"
+              >
                 Sign In
               </Link>
             </p>
             <p className="text-sm">
-              <Link
-                to="/forgot-password"
-                className="text-sm text-blue-700 underline"
-              >
+              <Link to="/forgot-password" className="text-sm text-blue-700">
                 Forgot Password
               </Link>
             </p>
