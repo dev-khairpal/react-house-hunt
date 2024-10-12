@@ -2,12 +2,15 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import OAuth from "../components/OAuth";
 import "@fortawesome/fontawesome-free/css/all.min.css"; // Import FontAwesome CSS
-import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  updateProfile,
+} from "firebase/auth";
 import { db } from "../firebase";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -33,25 +36,28 @@ export default function Signup() {
     setPasswordShowHide(!passwordShowHide);
   }
 
-  async function onSubmit(e){
+  async function onSubmit(e) {
     e.preventDefault();
     try {
       const auth = getAuth();
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      updateProfile(auth.currentUser,{
-        displayName:name
-      })
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      );
+      updateProfile(auth.currentUser, {
+        displayName: name,
+      });
       const user = userCredential.user;
-      const formDataCopy = {...formData};
-      delete formDataCopy.password
+      const formDataCopy = { ...formData };
+      delete formDataCopy.password;
       formDataCopy.timestamp = serverTimestamp();
 
       await setDoc(doc(db, "users", user.uid), formDataCopy);
       // toast.success("Sign Up was successful")
-      navigate('/');
-
+      navigate("/");
     } catch (error) {
-      toast.error(error.message)
+      toast.error(error.message);
     }
   }
   return (
@@ -126,9 +132,11 @@ export default function Signup() {
               />
               <span
                 onClick={handleToggle}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
+                className="absolute inset-y-0 right-0 flex cursor-pointer items-center pr-3"
               >
-                <i className={`fas ${passwordShowHide ? 'fa-eye-slash' : 'fa-eye'} text-slate-400`}></i>
+                <i
+                  className={`fas ${passwordShowHide ? "fa-eye-slash" : "fa-eye"} text-slate-400`}
+                ></i>
               </span>
             </div>
           </div>
